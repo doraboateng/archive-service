@@ -1,0 +1,13 @@
+# Temporary files
+__pycache__/
+data/*
+!data/.gitkeep
+tmp/
+venv/
+
+# IDEs
+.idea/
+.vscode/settings.json
+
+# Miscellaneous
+.DS_Store

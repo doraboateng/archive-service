@@ -1,0 +1,9 @@
+.devcontainer/
+.idea/
+.git/
+.vscode/
+.env
+.env.example
+data/
+tmp/
+README.md
