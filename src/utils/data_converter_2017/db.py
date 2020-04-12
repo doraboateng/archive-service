@@ -75,7 +75,7 @@ def fetch_alphabet_records(cursor):
             'code': alphabet_code.lower(),
             'script_code': script_code.lower() if script_code else None,
             'names': [],
-            'letters': utf_encode(letters),
+            'letters': utf_encode(letters.replace("\n", '')),
         }
 
         # Pull transliterations

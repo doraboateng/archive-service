@@ -1,15 +1,17 @@
 # Using Docker to convert the 2017 SQL dump to RDF
 
-Create 2 Docker images:
-
-1. Using MariaDB, to load the SQL dump.
-2. Using Dgraph, to generate the RDF dump.
+Create a Docker network to connect two Docker images (one for MariaDB, and another for Dgraph):
 
 ```shell
+# Create a folder to work out of.
 mkdir -p tmp/2017-dump
+
+# Create a Docker network to be shared between images.
 docker network \
     create \
     dora-temp-network
+
+# Create a Docker container running MariaDB.
 docker run \
     --detach \
     --env MYSQL_DATABASE=temp \
@@ -22,6 +24,8 @@ docker run \
     --rm \
     --workdir /tmp \
     mariadb:10.4.6
+
+# Create a Docker container running Dgraph.
 docker run \
     --detach \
     --interactive \
@@ -36,43 +40,46 @@ docker run \
     --rm \
     --workdir /tmp \
     dgraph/standalone:v2.0.0-rc1
+
+# Double-check that both containers are running.
 docker ps
 ```
 
-Copy SQL dump to `tmp/2017-dump`, then load SQL dump into MariaDB.
+Copy the SQL dump to `tmp/2017-dump`.
+
+Next, load the SQL dump into MariaDB:
 
 ```shell
+# Launch a Bash shell into the MariaDB container.
 docker exec \
     --interactive \
     --tty \
     dora-temp-maria \
     mysql temp --user root --password
-# enter password (temp)...
+
+# Enter password to use the mysql CLI (the password is "temp").
+# ...
+
+# Load the SQL dump into MariaDB and exit the container shell.
 source 2017-dump/dump.sql
 exit
-```
 
-Copy the Dgraph schema files into `tmp/2017-dump`.
-
-```shell
+# Copy the Dgraph schema files into `tmp/2017-dump`.
 curl \
     --output tmp/2017-dump/schema.gql \
     https://raw.githubusercontent.com/kwcay/boateng-api/stable/src/schema.gql
 curl \
     --output tmp/2017-dump/schema.dgraph \
-    https://raw.githubusercontent.com/kwcay/boateng-api/stable/src/schema.dgraph
-```
+    https://raw.githubusercontent.com/kwcay/boateng-api/stable/src/schema-indices.dgraph
 
-Copy data from MariaDB to Dgraph.
-
-```shell
+# Launch a shell into the Dgraph container.
 docker exec \
     --interactive \
     --tty \
     dora-temp-dgraph \
     bash
 
-# Prep environment
+# Install the dependencies needed to run the sync.py script.
 apt-get update && \
     apt-get upgrade --assume-yes && \
     apt-get install --assume-yes python3-pip && \
@@ -81,17 +88,14 @@ apt-get update && \
     pip install --requirement requirements.txt && \
     export PYTHONIOENCODING=UTF-8
 
-# Load schema files
+# Load schema files into graph.
 curl localhost:8080/admin/schema --data-binary "@/tmp/2017-dump/schema.gql"
-curl localhost:8080/alter --data-binary "@/tmp/2017-dump/schema.dgraph"
+curl localhost:8080/alter --data-binary "@/tmp/2017-dump/schema-indices.dgraph"
 
-# Sync databases
+# Run the sync.py script to load data from MariaDB into Dgraph.
 python3 sync.py
-```
 
-Cleanup
-
-```shell
+# Cleanup.
 docker stop dora-temp-maria dora-temp-dgraph
 docker network rm dora-temp-network
 ```
@@ -102,65 +106,4 @@ docker network rm dora-temp-network
 virtualenv venv
 . venv/bin/activate
 pip install --requirement src/utils/data_converter_2017/requirements.txt
-```
-
-
-
-
-
-
-
-
-
-
-# BACKUP...
-
-Create Docker image.
-
-```
-docker run \
-    --detach \
-    --env MYSQL_DATABASE=temp \
-    --env MYSQL_ROOT_PASSWORD=temp \
-    --interactive \
-    --mount type=bind,src="$(pwd)",target="/dora-temp" \
-    --name dora-temp-db \
-    --tty \
-    --rm \
-    mariadb:10.4.6
-docker ps
-```
-
-Launch shell into container.
-
-```
-docker exec \
-    --interactive \
-    --tty \
-    --workdir /dora-temp \
-    dora-temp-db \
-    bash
-```
-
-Load data into database.
-
-```
-mysql temp --user root --password
-# enter password (temp)...
-source 2017-07-19.sql
-exit
-```
-
-Generate dump and tarball.
-
-```
-apt-get update && apt-get install libmysqlclient-dev python3 python3-pip --assume-yes
-pip3 install mysql-connector-python-rf rdflib
-
-# JSON dump
-python3 dump_json.py
-tar --create --gzip --file 2017-07-19.tar.gz *.json
-
-# RDF dump
-python3 dump_rdf.py
 ```
