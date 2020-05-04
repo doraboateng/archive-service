@@ -1,12 +1,7 @@
-# Boateng Archive Service
+<details>
+    <summary>Table of Contents</summary>
 
-## Requirements
-
-- [Docker](https://www.docker.com)
-
-## Table of contents
-
-- [Development](#development)
+- [Local Setup](#local-setup)
     - [Running the Archive Service](#running-the-archive-service)
 - [Creating a Dgraph backup](#creating-a-dgraph-backup)
     - [RDF backup](#rdf-backup)
@@ -14,9 +9,19 @@
 - [Restoring a backup](#restoring-a-backup)
     - [Graph native format](#graph-native-format)
     - [2017 format](#2017-format)
-- [Updating the Docker image](#updating-the-docker-image)
+- [Deploying](#deploying)
+- [License](#license)
 
-# Development
+</details>
+
+# Local Setup
+
+<details>
+    <summary>Requirements</summary>
+
+- [Docker](https://www.docker.com)
+
+</details>
 
 <details>
     <summary>Initial setup</summary>
@@ -27,11 +32,10 @@ git clone git@github.com:kwcay/boateng-archive-service.git
 cd boateng-archive-service
 
 # Build Docker image.
-docker build --tag doraboateng/archive-service .
+docker build --tag doraboateng/archive-service --target dev .
 
 # Create Docker container.
-docker run \
-    --detach \
+docker create \
     --interactive \
     --mount type=bind,src=$(pwd)/data,dst=/tmp/data \
     --mount type=bind,src=$(pwd)/src,dst=/boateng-archive-service \
@@ -76,16 +80,13 @@ docker stop boateng-archive-service
 
 ## 2017 format
 
-# Updating the Docker image
+# Deploying
 
-```shell
-# Build Docker image.
-docker build --tag doraboateng/archive-service .
+# License
 
-# ...
-```
+[GNU General Public License v3](https://github.com/kwcay/boateng-graph-service/blob/stable/LICENSE) © Kwahu & Cayes
 
-# NOTES
+# WIP NOTES
 
 From inside the `ash` shell:
 

@@ -1,18 +1,18 @@
 import mysql.connector
 from mysql.connector import Error
+from uuid import uuid4
 
 definition_types = {
-    0: 'word',
-    5: 'name',
-    10: 'expression',
-    30: 'story',
+    0: 'Word',
+    5: 'Word',
+    10: 'Expression',
 }
 
 parts_of_speech = {
-    'adj': 'adjective',
-    'adv': 'adverb',
-    'n': 'noun',
-    'v': 'verb',
+    'adj': 'Adjective',
+    'adv': 'Adverb',
+    'n': 'Noun',
+    'v': 'Verb',
 }
 
 
@@ -35,7 +35,7 @@ def open_db_connection():
 
     try:
         connection = mysql.connector.connect(
-            host='dora-temp-maria',
+            host='dora-2017-backup-mariadb',
             database='temp',
             user='root',
             password='temp',
@@ -108,7 +108,7 @@ def fetch_expression_records(cursor):
 
     for def_id, def_type, def_sub_type, def_lang in definition_records:
         expression = {
-            'type': definition_types.get(def_type, def_type),
+            'type': definition_types.get(def_type, 'Word'),
             'titles': [],
             'languages': [],
             'part_of_speech': parts_of_speech.get(def_sub_type, None),
@@ -120,6 +120,7 @@ def fetch_expression_records(cursor):
             'tags': [],
             'related': [],
             'references': [],
+            'uuid': uuid4().hex
         }
 
         expressions.append(expression)
@@ -134,10 +135,10 @@ def fetch_expression_records(cursor):
         title_records = cursor.fetchall()
 
         for title_id, title, script_code in title_records:
-            tr = get_transliteration(title, None, script_code)
+            tr_from_title = get_transliteration(title, None, script_code)
 
-            if tr is not None:
-                expression['titles'].append(tr)
+            if tr_from_title is not None:
+                expression['titles'].append(tr_from_title)
 
             # Pull transliterations
             cursor.execute(
@@ -150,10 +151,19 @@ def fetch_expression_records(cursor):
             transliteration_records = cursor.fetchall()
 
             for lang, transliteration in transliteration_records:
-                tr = get_transliteration(transliteration, lang)
+                # Skip duplicates...
+                if transliteration == title:
+                    tr_title_index = expression['titles'].index(tr_from_title)
+                    expression['titles'][tr_title_index] = get_transliteration(
+                        transliteration,
+                        lang,
+                        script_code,
+                    )
+                else:
+                    tr = get_transliteration(transliteration, lang)
 
-                if tr is not None:
-                    expression['titles'].append(tr)
+                    if tr is not None:
+                        expression['titles'].append(tr)
 
         # Pull languages for definition.
         cursor.execute(
@@ -188,7 +198,7 @@ def fetch_expression_records(cursor):
             tr = get_transliteration(tr_meaning, tr_lang)
             if tr is not None:
                 expression['meaning'].append(tr)
-    
+
     return expressions
 
 

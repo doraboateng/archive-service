@@ -1,5 +1,5 @@
-from db import fetch_all
-from graph import load_all
+from .db import fetch_all
+from .graph import load_all, reset
 
 
 def sync():
@@ -9,6 +9,11 @@ def sync():
 
     if not data:
         return 1
+    
+    # print('')
+    # print('Resetting Dgraph...')
+    # if not reset():
+    #     return 1
     
     print('')
     print('Loading data into Dgraph...')

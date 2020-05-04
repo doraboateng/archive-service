@@ -1,0 +1,22 @@
+{
+    "build": {
+      "target": "dev",
+    },
+    "dockerFile": "Dockerfile",
+    "extensions": [
+      "ms-vscode.go",
+      "ms-python.python",
+      "visualstudioexptteam.vscodeintellicode",
+    ],
+    "mounts": [
+      "type=bind,source=${localWorkspaceFolder},target=/boateng-archive-service",
+    ],
+    "runArgs": [
+      "--name=boateng-archive-service-dev-container",
+    ],
+    "settings": {
+      "go.gopath": "/go",
+    },
+    
+    "name": "boateng-archive-service-dev-container",
+  }

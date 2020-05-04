@@ -1,11 +1,27 @@
-FROM alpine:3.11.5
+FROM golang:1.14.2-buster AS dev
 
-RUN apk update && \
-    apk upgrade && \
-    apk add curl ipython less python3 vim && \
-    ln -s /usr/bin/python3 /usr/bin/python && \
-    ln -s /usr/bin/pip3 /usr/bin/pip && \
-    mkdir --parents /tmp/data
+RUN apt-get update \
+    && apt-get upgrade --yes \
+    && apt-get install --no-install-recommends --yes \
+        curl \
+        git \
+        ipython \
+        less \
+        python3-pip \
+        vim \
+    && apt-get remove subversion --yes \
+    && apt-get autoremove --yes \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* \
+    && pip3 install --disable-pip-version-check --no-cache-dir \
+        pylint \
+        flake8 \
+        autopep8 \
+        yapf \
+        pydocstyle \
+        pycodestyle \
+        bandit \
+    && mkdir --parents /tmp/data
 
-ADD ./src /boateng-archive-service
+ADD . /boateng-archive-service
 WORKDIR /boateng-archive-service
