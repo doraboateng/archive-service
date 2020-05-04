@@ -1,12 +1,10 @@
-# Using Docker to convert the 2017 SQL dump to RDF
-
-Create a Docker network to connect two Docker images (one for MariaDB, and another for Dgraph):
+# Converting 2017 SQL backup to RDF
 
 ```shell
-# Create a folder to work out of.
+# From the project root, create a folder to work out of.
 mkdir -p tmp/2017-dump
 
-# Create a Docker network to be shared between images.
+# Create a Docker network to be shared between the two databases.
 docker network create dora-2017-backup-network
 
 # Create a Docker container running MariaDB.
@@ -27,6 +25,7 @@ docker run \
 # Create a Docker container running Dgraph.
 docker run \
     --detach \
+    --env LESSCHARSET=utf-8 \
     --env PYTHONIOENCODING=UTF-8 \
     --interactive \
     --mount type=bind,src="$(pwd)"/tmp/2017-dump,target=/tmp/2017-dump \
@@ -50,7 +49,7 @@ Copy the SQL dump to `tmp/2017-dump`.
 Next, load the SQL dump into MariaDB:
 
 ```shell
-# Launch a Bash shell into the MariaDB container.
+# Launch a mysql shell into the MariaDB container.
 docker exec \
     --interactive \
     --tty \
@@ -85,9 +84,7 @@ apt-get update
     && apt-get install --assume-yes less python3-pip \
     && pip3 install --upgrade pip \
     && cd /tmp/src \
-    && pip install --requirement requirements.txt \
-    && export PYTHONIOENCODING=UTF-8 \
-    && export LESSCHARSET=utf-8
+    && pip install --requirement requirements.txt
 
 # Load schema files into graph.
 curl localhost:8080/alter -d '{ "drop_all": true }' && \
