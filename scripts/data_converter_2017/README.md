@@ -79,7 +79,7 @@ docker exec \
     bash
 
 # Install the dependencies needed to run the sync.py script.
-apt-get update
+apt-get update \
     && apt-get upgrade --assume-yes \
     && apt-get install --assume-yes less python3-pip \
     && pip3 install --upgrade pip \
