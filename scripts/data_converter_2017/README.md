@@ -120,6 +120,7 @@ pip install --requirement scripts/data_converter_2017/requirements.txt
 
 ```shell
 # untar first...
+tar --extract --gzip --file 2017-07-19.tar.gz
 
 # then load RDF and schema
 dgraph live \
