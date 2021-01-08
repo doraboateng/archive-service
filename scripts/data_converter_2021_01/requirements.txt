@@ -1,0 +1,2 @@
+mysql-connector-python-rf==2.2.2
+pydgraph==20.07.0

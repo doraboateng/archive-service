@@ -1,4 +1,4 @@
-# Converting 2017 SQL backup to RDF
+# Convert 2017 SQL backup to RDF
 
 ```shell
 # From the project root, create a folder to work out of.
@@ -29,7 +29,7 @@ docker run \
     --env PYTHONIOENCODING=UTF-8 \
     --interactive \
     --mount type=bind,src="$(pwd)"/tmp/2017-dump,target=/tmp/2017-dump \
-    --mount type=bind,src="$(pwd)"/scripts/data_converter_2017,target=/tmp/src \
+    --mount type=bind,src="$(pwd)"/scripts/data_converter_2021_01,target=/tmp/src \
     --name dora-2017-backup-dgraph \
     --network dora-2017-backup-network \
     --publish 18000:8000 \
@@ -38,7 +38,7 @@ docker run \
     --tty \
     --rm \
     --workdir /tmp \
-    dgraph/standalone:v20.03.1
+    dgraph/standalone:v20.11.0
 
 # Double-check that both containers are running.
 docker ps --last 2
@@ -66,10 +66,10 @@ exit
 # Copy the Dgraph schema files into `tmp/2017-dump`.
 curl \
     --output tmp/2017-dump/schema.gql \
-    https://raw.githubusercontent.com/kwcay/boateng-api/stable/src/graph/schema/graph.gql
+    https://raw.githubusercontent.com/doraboateng/api/stable/src/graph/schema/graph.gql
 curl \
-    --output tmp/2017-dump/schema.dgraph \
-    https://raw.githubusercontent.com/kwcay/boateng-api/stable/src/graph/schema/indices.dgraph
+    --output tmp/2017-dump/indices.dgraph \
+    https://raw.githubusercontent.com/doraboateng/api/stable/src/graph/schema/indices.dgraph
 
 # Launch a shell into the Dgraph container.
 docker exec \
@@ -89,7 +89,7 @@ apt-get update \
 # Load schema files into graph.
 curl localhost:8080/alter -d '{ "drop_all": true }' && \
     curl localhost:8080/admin/schema --data-binary "@/tmp/2017-dump/schema.gql" && \
-    curl localhost:8080/alter --data-binary "@/tmp/2017-dump/schema.dgraph"
+    curl localhost:8080/alter --data-binary "@/tmp/2017-dump/indices.dgraph"
 
 # Run the sync.py script to load data from MariaDB into Dgraph.
 cd /tmp && python3 -m src.sync

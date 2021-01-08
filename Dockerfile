@@ -1,4 +1,4 @@
-FROM golang:1.14.2-buster AS dev
+FROM golang:1.15.6-buster AS dev
 
 RUN apt-get update \
     && apt-get upgrade --yes \
